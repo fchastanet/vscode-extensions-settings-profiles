@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
-
+import * as path from 'path';
+import * as fs from 'fs';
 import { Config, ProfileRef } from "./types";
 
 export function getConfig(): Config {
-	return vscode.workspace.getConfiguration().get<Config>("extension-profiles")
+	return vscode.workspace.getConfiguration().get<Config>("extensions-settings-profiles")
 		|| {
 			activeProfiles: [],
 			enableStartupCheck: false,

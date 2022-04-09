@@ -1,4 +1,4 @@
-# Extension Profiles 3000
+# Extensions & Settings Profiles
 
 Define sets of extensions that can quickly be enabled in workspaces via settings
 
@@ -8,7 +8,7 @@ Do you have extensions you *only* want enabled for certain workspaces?  For exam
 
 VS Code does allow enabling/disabling extensions in a workspace manually. But you must remember which extensions you want enabled for each type of workspace (for example, Java), and then scroll through the list of *all* installed extensions to find the ones you want to enable (while hoping you don't miss any).  And if you add a new Java extension, you have to remember to enable it in all your existing Java workspaces.  Do you wish there was a way to define groups of extensions that can be enabled in a workspace together quickly and consistently?  And to be able to modify these groups of extensions, and have existing workspaces updated?
 
-If so, then Extension Profiles 3000 may be the solution you are looking for!  Extension Profiles 3000 allows you to disable extensions globally, and then enable them quickly in the workspaces you want. How it works is:
+If so, then Extensions & Settings Profiles may be the solution you are looking for!  Extensions & Settings Profiles allows you to disable extensions globally, and then enable them quickly in the workspaces you want. How it works is:
 
 - First, you globally disable the extensions you do not want enabled in all workspaces
 - Next, you define extension profiles (groups of extensions you want to enable together) in your user settings
@@ -26,15 +26,15 @@ Additional features include:
 - Ability to create a keyboard shortcut to activate a specific profile
 
 
-## Extension Profiles 3000 Goal
+## Extensions & Settings Profiles Goal
 
-The goal of Extension Profiles 3000 is to provide a solution to easily enable/disable groups of extensions using only the VS Code API.
+The goal of Extensions & Settings Profiles is to provide a solution to easily enable/disable groups of extensions using only the VS Code API.
 
 There is a popular VS Code feature request to [enable/disable extensions via a configuration file](https://github.com/microsoft/vscode/issues/40239), however it does not appear likely to be implemented anytime soon.
 
 There are other extensions and workarounds to provide similar functionality in a more automated way, however they work by manipulating the VS Code extensions folder or directly modifying the VS Code internal User data.
 
-By using only the VS Code API, Extension Profiles 3000 provides a solution to easily manage enabling/disabling self-defined groups of extensions without impacting the stability in your VS Code installation.
+By using only the VS Code API, Extensions & Settings Profiles provides a solution to easily manage enabling/disabling self-defined groups of extensions without impacting the stability in your VS Code installation.
 
 ## Usage
 
@@ -45,7 +45,7 @@ By using only the VS Code API, Extension Profiles 3000 provides a solution to ea
 2: Define extension profiles in settings.json
 
 ```jsonc
-    "extension-profiles.profiles": {
+    "extensions-settings-profiles.profiles": {
       "Spring Boot": { // Extension Profile name
         "extensions": [ // List of extensions that should be enabled
           "vscjava.vscode-java-pack",
@@ -89,7 +89,7 @@ Profiles can also be configured with extensions that should be disabled.  If the
 
 To configure disabled extensions:
 ```jsonc
-    "extension-profiles.profiles": {
+    "extensions-settings-profiles.profiles": {
       "Java": {
         "extensions": [
           "vscjava.vscode-java-pack"
@@ -110,7 +110,7 @@ Profiles can be configured with settings that should be set on the workspace (or
 When profile is activated, an editor will be opened to prompt you if there are any profile settings that need to be set.  And when the workspace is opened, a popup will notify if there are any profile settings that need to be set.
 
 ```jsonc
-    "extension-profiles.profiles": {
+    "extensions-settings-profiles.profiles": {
       "Java": {
         "extensions": [
           "vscjava.vscode-java-pack",
@@ -148,7 +148,7 @@ To configure a keyboard shortcut to active a profile, add to `keybindings.json`:
 ```json
 {
     "key": "ctrl+k ctrl+z",
-    "command": "extension-profiles.activate-profile",
+    "command": "extensions-settings-profiles.activate-profile",
     "args": "Spring Boot"
 }
 
@@ -159,3 +159,66 @@ To configure a keyboard shortcut to active a profile, add to `keybindings.json`:
 - The extension sidebar search has a limitation of 200 characters.  When activating or viewing a profile, the extension search will broken into searches of less than 200 characters.  A popup message will notify if there are additional extensions to display and include a button to execute the next search.
 
 ![More Extensions to Enable Popup Example](images/example-more-extensions-to-enable.png)
+
+
+## How does this plugin work ?
+
+### VsCode extensions activation process
+
+activation of extensions is done by creating/updating `User/globalStorage/state.vscdb`
+then extensions are stored in extensionsIdentifiers/disabled or extensionsIdentifiers/enabled keys
+
+### VsCode Settings
+Depending on your platform, the user settings file is located here:
+Windows %APPDATA%\Code\User\settings.json
+macOS $HOME/Library/Application Support/Code/User/settings.json
+Linux $HOME/.config/Code/User/settings.json
+
+Settings:
+```json
+  "extensions-settings-profiles.profiles": {
+    "Mandatory": {
+      "mandatory": true,
+      "extensions": [
+        "bierner.markdown-preview-github-styles",
+        ...
+      ]
+    },
+    "Bash-Bats-Shellcheck-jq": {
+      "extensions": [
+        "davidnussio.vscode-jq-playground",
+        ...
+      ]
+    },
+    "Design API-UML": {
+      "extensions": [
+        "42crunch.vscode-openapi",
+        ...
+      ]
+    },
+```
+
+### Selecting active profiles
+Steps:
+* The command `extensions-settings-profiles.activate-profile` allows to select the active 
+  profiles (Profiles list is deduced from settings.json.)
+* We store "extensions-settings-profiles.activeProfiles" list in `User/globalStorage/state.vscdb`.
+* On validation, we update active extensions
+    * we get the list of currently running extensions
+    * the list of extensions to be activated deduced from the profiles selected. 
+    * We activate/deactivate the corresponding extensions in `User/globalStorage/state.vscdb` database. 
+    * Finally we relaod VsCode.
+
+Note: a popup is displayed if some extensions are not found
+
+### Startup process
+
+Solution:
+* store "extensions-settings-profiles.activeProfiles": ["Mandatory"] in `User/globalStorage/state.vscdb`
+* list1: get from settings the list of extensions to enable based on `extensions-settings-profiles.activeProfiles`
+* list2: get the list of current extensions enabled (current state)
+* diff list1 list2: mark the extensions to disable in User/globalStorage/state.vscdb
+* add list1 extensions to enable in User/globalStorage/state.vscdb
+* if state has changed, reload window
+
+In order to manage specific settings for a given profile <https://stackoverflow.com/a/54524132>

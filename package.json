@@ -1,20 +1,33 @@
 {
-	"publisher": "baincd",
-	"name": "extension-profiles",
-	"displayName": "Extension Profiles 3000",
-	"description": "Define sets of extensions that can quickly be enabled in workspaces via settings",
-	"version": "1.3.2",
+	"publisher": "fchastanet",
+	"name": "extensions-settings-profiles",
+	"displayName": "Extensions & Settings Profiles",
+	"description": "Define sets of extensions and settings that can quickly be enabled in workspaces via settings",
+	"version": "1.0.0",
 	"license": "MIT",
 	"engines": {
-		"vscode": "^1.32.0"
+		"vscode": "^1.66.0"
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/baincd/vscode-extension-profiles"
+		"url": "https://github.com/fchastanet/vscode-extensions-settings-profiles"
+	},
+	"author": {
+		"name": "François Chastanet",
+		"url": "https://github.com/fchastanet"
 	},
 	"categories": [
 		"Other"
 	],
+	"keywords": [
+		"vscode-settings",
+		"profile",
+		"extensions",
+		"extension",
+		"manager",
+		"workspace"
+	],
+	"icon": "images/icon.png",
 	"activationEvents": [
 		"onStartupFinished"
 	],
@@ -23,12 +36,12 @@
 		"commands": [
 			{
 				"title": "Extension Profiles: Active Profiles Setup",
-				"command": "extension-profiles.active-profiles-setup"
+				"command": "extensions-settings-profiles.active-profiles-setup"
 			}
 		],
 		"configuration": {
 			"properties": {
-				"extension-profiles.profiles": {
+				"extensions-settings-profiles.profiles": {
 					"type": "object",
 					"additionalProperties": {
 						"type": "object",
@@ -112,21 +125,21 @@
 						}
 					]
 				},
-				"extension-profiles.activeProfiles": {
+				"extensions-settings-profiles.activeProfiles": {
 					"type": "array",
 					"items": {
 						"type": "string",
-						"description": "Extension profile name (must match a extension-profiles.profiles.* value)"
+						"description": "Extension profile name (must match a extensions-settings-profiles.profiles.* value)"
 					},
 					"default": [],
 					"description": "Active profiles (recommended to be set only on workspace settings)"
 				},
-				"extension-profiles.enableStartupCheck": {
+				"extensions-settings-profiles.enableStartupCheck": {
 					"type": "boolean",
 					"default": true,
 					"markdownDescription": "If enabled, warn on startup about the following conditions:\n- Active profiles with extensions that need to be enabled or disabled\n- Active profiles that are not defined\n- Temporary profiles that are active"
 				},
-				"extension-profiles.listActiveProfilesFirst": {
+				"extensions-settings-profiles.listActiveProfilesFirst": {
 					"type": "boolean",
 					"default": true,
 					"markdownDescription": "If enabled, list active profiles first in the \"Active Profiles Setup\" quick pick list"
@@ -135,32 +148,53 @@
 		}
 	},
 	"scripts": {
-		"vscode:prepublish": "webpack --mode production",
-		"webpack": "webpack --mode development",
+		"version": "auto-changelog -p && git add CHANGELOG.md",
+		"prepackage": "cp -R ./bin/sqlite3/ ./node_modules/sqlite3/lib/binding/",
+		"vscode:prepublish": "npm run prepackage && npm run compile",
+		"compile": "webpack --mode production",
+		"lint": "eslint . --ext .ts,.tsx",
+		"lint:fix": "npm run lint -- --fix ",
+		"webpack": "NODE_OPTIONS=--openssl-legacy-provider webpack --mode development",
 		"webpack-dev": "webpack --mode development --watch",
 		"test-compile": "tsc -p ./",
-		"lint": "eslint . --ext .ts,.tsx",
 		"watch": "tsc -watch -p ./",
-		"pretest": "npm run compile",
-		"test": "node ./out/test/runTest.js"
+		"pretest": "npm run compile && npm run lint",
+		"test": "node ./out/test/runTests.ts",
+		"build": "npm run build:sqlite",
+		"build:sqlite": "npm run build:sqlite:linux && npm run build:sqlite:win32 && npm run build:sqlite:win64 && npm run build:sqlite:mac && npm run build:sqlite:mac:arm64 && cp -R ./node_modules/sqlite3/lib/binding/ ./bin/sqlite3/",
+		"build:sqlite:linux": "./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=linux --target_arch=x64",
+		"build:sqlite:win32": "./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=win32 --target_arch=ia32",
+		"build:sqlite:win64": "./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=win32 --target_arch=x64",
+		"build:sqlite:mac": "echo 'skipped as not working' || ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=darwin --target_arch=x64",
+		"build:sqlite:mac:arm64": "echo 'skipped as not working' || ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=darwin --target_arch=arm64"
 	},
 	"devDependencies": {
-		"@types/chai": "^4.2.15",
-		"@types/glob": "^7.1.1",
-		"@types/mocha": "^5.2.6",
-		"@types/node": "^12.12.0",
-		"@types/vscode": "^1.32.0",
-		"@typescript-eslint/eslint-plugin": "^4.16.0",
-		"@typescript-eslint/parser": "^4.16.0",
-		"chai": "^4.3.4",
-		"eslint": "^7.21.0",
-		"glob": "^7.1.4",
-		"mocha": "^6.1.4",
-		"source-map-support": "^0.5.12",
-		"ts-loader": "^9.2.3",
-		"typescript": "^4.2.2",
+		"@types/chai": "^4.3.0",
+		"@types/glob": "^7.2.0",
+		"@types/mocha": "^9.1.0",
+		"@types/node": "^17.0.23",
+		"@types/sinon": "^10.0.11",
+		"@types/sqlite3": "^3.1.8",
+		"@types/vscode": "^1.66.0",
+		"@typescript-eslint/eslint-plugin": "^5.18.0",
+		"@typescript-eslint/parser": "^5.18.0",
+		"auto-changelog": "^2.4.0",
+		"chai": "^4.3.6",
+		"eslint": "^8.12.0",
+		"glob": "^7.2.0",
+		"mocha": "^9.2.2",
+		"sinon": "^13.0.1",
+		"source-map-support": "^0.5.21",
+		"ts-loader": "^9.2.8",
+		"typescript": "^4.6.3",
 		"vscode-test": "^1.3.0",
-		"webpack": "^5.40.0",
-		"webpack-cli": "^4.7.2"
+		"webpack": "^5.71.0",
+		"webpack-cli": "^4.9.2"
+	},
+	"dependencies": {
+		"@mapbox/node-pre-gyp": "^1.0.9",
+		"promised-sqlite3": "^1.2.0",
+		"sqlite": "^4.0.25",
+		"sqlite3": "^5.0.2"
 	}
 }

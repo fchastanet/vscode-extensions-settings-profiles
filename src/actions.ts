@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
-import * as ui from './ui'
-import * as configUtils from './configUtils'
+import * as ui from './ui';
+import * as configUtils from './configUtils';
 
 import { Config, ProfileAction, ProfileRef } from "./types";
 
@@ -19,7 +19,7 @@ export function startupCheck(config: Config) {
 }
 
 export function activeProfilesSetupCommand() {
-	let profileRefs: ProfileRef[] = configUtils.getProfileRefs();
+	const profileRefs: ProfileRef[] = configUtils.getProfileRefs();
 
 	if (profileRefs.length == 0) {
 		ui.showNoProfilesDefinedPopup();
@@ -28,9 +28,9 @@ export function activeProfilesSetupCommand() {
 
 	vscode.window.showQuickPick(profileRefs.map(opt => opt.displayName()))
 		.then(selectedDisplayName => {
-			profileSelectedAction(profileRefs.find(opt => opt.displayName() == selectedDisplayName))
+			profileSelectedAction(profileRefs.find(opt => opt.displayName() == selectedDisplayName));
 		}
-	)
+	);
 }
 
 
@@ -38,11 +38,11 @@ function profileSelectedAction(opt?: ProfileRef) {
 	if (!opt) {
 		return;
 	}
-	let viewAction = "View extensions in " + opt.name + " profile";
-	let activateAction = "Activate " + opt.name + " profile";
-	let deactivateAction = "Deactivate " + opt.name + " profile";
+	const viewAction = "View extensions in " + opt.name + " profile";
+	const activateAction = "Activate " + opt.name + " profile";
+	const deactivateAction = "Deactivate " + opt.name + " profile";
 
-	let actionOptions: string[] = [];
+	const actionOptions: string[] = [];
 
 	if (opt.exists && !opt.activated) {
 		actionOptions.push(activateAction);
@@ -61,7 +61,7 @@ function profileSelectedAction(opt?: ProfileRef) {
 				case activateAction: profileAction(opt.name, ProfileAction.ACTIVATE); break;
 				case deactivateAction: profileAction(opt.name, ProfileAction.DEACTIVATE); break;
 			}
-		})
+		});
 }
 
 export function activateProfileCommand(profileName: string) {
@@ -109,8 +109,8 @@ export function profileAction(profileName: string, action: ProfileAction, config
 			activeProfiles = activeProfiles.filter(p => p != profileName);
 		}
 	
-		vscode.workspace.getConfiguration("extension-profiles").update("activeProfiles", activeProfiles, vscode.ConfigurationTarget.Workspace)
-			.then(undefined, ui.showErrorSavingActiveProfilesPopup)
+		vscode.workspace.getConfiguration("extensions-settings-profiles").update("activeProfiles", activeProfiles, vscode.ConfigurationTarget.Workspace)
+			.then(undefined, ui.showErrorSavingActiveProfilesPopup);
 	}
 
 	const profileConfig = config.profiles[profileName];
@@ -120,9 +120,9 @@ export function profileAction(profileName: string, action: ProfileAction, config
 	}
 
 	const isViewAction = action == ProfileAction.VIEW;
-	let extsNeedEnabled: Array<string> = (isViewAction ? profileConfig.extensions : profileConfig.extensions.filter(extNotEnabled));
-	let extsNeedDisabled: Array<string> = (isViewAction ? profileConfig.disabledExtensions : profileConfig.disabledExtensions?.filter(extEnabled)) || [];
-	let settingsNeedSet:{ [key: string]: any; } = (isViewAction ? profileConfig.settings : filterNotSetInWorkspace(profileConfig.settings)) || {};
+	const extsNeedEnabled: Array<string> = (isViewAction ? profileConfig.extensions : profileConfig.extensions.filter(extNotEnabled));
+	const extsNeedDisabled: Array<string> = (isViewAction ? profileConfig.disabledExtensions : profileConfig.disabledExtensions?.filter(extEnabled)) || [];
+	const settingsNeedSet:{ [key: string]: any; } = (isViewAction ? profileConfig.settings : filterNotSetInWorkspace(profileConfig.settings)) || {};
 
 	if (extsNeedEnabled.length) {
 		if (action == ProfileAction.STARTUP) {
@@ -159,7 +159,7 @@ function filterNotSetInWorkspace(profileSettings: { [key: string]: any; } | unde
 		if (!settingSetForWorkspace(settingKey)) {
 			notSetSettings[settingKey] = unproxy(profileSettings[settingKey]); // settings are wrapped in a Proxy, which doesn't work right with JSON.stringify, so need to unproxy value
 		}
-	})
+	});
 	return notSetSettings;
 }
 
@@ -170,7 +170,7 @@ function unproxy(original: any): any {
 		const unproxied: { [key: string]: any; } = {};
 		Object.keys(original).forEach(originalKey => {
 			unproxied[originalKey] = unproxy(original[originalKey]);
-		})
+		});
 		return unproxied;
 	}
 }

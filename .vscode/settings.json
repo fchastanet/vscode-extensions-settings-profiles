@@ -7,5 +7,14 @@
     "files.exclude": {
         "**/test/ext": true,
         "**/test/usr": true
+    },
+    "eslint.validate": ["typescript", "typescriptreact"],
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/out": true,
+        "**/bower_components": true,
+        "**/*.code-search": true,
+        ".vscode-test": true,
+        "**/.vscode-test/**": true
     }
 }

@@ -156,10 +156,11 @@
 		"lint:fix": "npm run lint -- --fix ",
 		"webpack": "NODE_OPTIONS=--openssl-legacy-provider webpack --mode development",
 		"webpack-dev": "webpack --mode development --watch",
-		"test-compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./",
-		"pretest": "npm run compile && npm run lint",
-		"test": "node ./out/test/runTests.ts",
+		"watch": "tsc -watch -p ./ --outDir out",
+		"test:compile": "tsc -p ./ --outDir out",
+		"pretest": "npm run test:compile && npm run compile && npm run lint",
+		"test": "node ./out/test/runTests.js && mocha -ui tdd ./out/test/suite/core",
+		"test:mocha": "npm run pretest && mocha -ui tdd ./out/test/suite/core",
 		"build": "npm run build:sqlite",
 		"build:sqlite": "npm run build:sqlite:linux && npm run build:sqlite:win32 && npm run build:sqlite:win64 && npm run build:sqlite:mac && npm run build:sqlite:mac:arm64 && cp -R ./node_modules/sqlite3/lib/binding/ ./bin/sqlite3/",
 		"build:sqlite:linux": "./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=linux --target_arch=x64",
@@ -169,12 +170,12 @@
 		"build:sqlite:mac:arm64": "echo 'skipped as not working' || ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=darwin --target_arch=arm64"
 	},
 	"devDependencies": {
+		"@mapbox/node-pre-gyp": "^1.0.9",
 		"@types/chai": "^4.3.0",
 		"@types/glob": "^7.2.0",
 		"@types/mocha": "^9.1.0",
 		"@types/node": "^17.0.23",
 		"@types/sinon": "^10.0.11",
-		"@types/sqlite3": "^3.1.8",
 		"@types/vscode": "^1.66.0",
 		"@typescript-eslint/eslint-plugin": "^5.18.0",
 		"@typescript-eslint/parser": "^5.18.0",
@@ -192,8 +193,6 @@
 		"webpack-cli": "^4.9.2"
 	},
 	"dependencies": {
-		"@mapbox/node-pre-gyp": "^1.0.9",
-		"promised-sqlite3": "^1.2.0",
 		"sqlite": "^4.0.25",
 		"sqlite3": "^5.0.2"
 	}

@@ -26,6 +26,13 @@
 			"problemMatcher": [
 				"$tsc"
 			]
+		},
+		{
+			"label": "Build",
+			"type": "npm",
+			"script": "pretest",
+			"problemMatcher": [],
+			"detail": "npm run test:compile && npm run compile && npm run lint"
 		}
 	]
 }
